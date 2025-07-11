@@ -34,7 +34,7 @@ void daemonize() {
 		exit(0); // Parent exits
 	}
 
-#if 0
+#ifndef NDEBUG
 	// Create new session
 	if (setsid() < 0) {
 		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
