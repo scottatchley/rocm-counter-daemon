@@ -1,0 +1,143 @@
+  - name: SQ_INSTS_VALU_ADD_F64_sum
+    description: The number of VALU ADD/SUB instructions on float64. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_ADD_F64,sum)
+  - name: SQ_INSTS_VALU_MUL_F64_sum
+    description: The number of VALU MUL instructions on float64. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MUL_F64,sum)
+  - name: SQ_INSTS_VALU_FMA_F64_sum
+    description: The number of VALU FMA instructions on float64. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_FMA_F64,sum)
+  - name: SQ_INSTS_VALU_MFMA_F64_sum
+    description: The number of VALU MFMA instructions on float64. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MFMA_F64,sum)
+  - name: SQ_INSTS_VALU_ADD_F32_sum
+    description: The number of VALU ADD/SUB instructions on float32. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_ADD_F32,sum)
+  - name: SQ_INSTS_VALU_MUL_F32_sum
+    description: The number of VALU MUL instructions on float32. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MUL_F32,sum)
+  - name: SQ_INSTS_VALU_FMA_F32_sum
+    description: The number of VALU FMA instructions on float32. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_FMA_F32,sum)
+  - name: SQ_INSTS_VALU_MFMA_F32_sum
+    description: The number of VALU MFMA instructions on float32. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MFMA_F32,sum)
+  - name: SQ_INSTS_VALU_ADD_F16_sum
+    description: The number of VALU ADD/SUB instructions on float16. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_ADD_F16,sum)
+  - name: SQ_INSTS_VALU_MUL_F16_sum
+    description: The number of VALU MUL instructions on float16. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MUL_F16,sum)
+  - name: SQ_INSTS_VALU_FMA_F16_sum
+    description: The number of VALU FMA instructions on float16. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_FMA_F16,sum)
+  - name: SQ_INSTS_VALU_MFMA_F16_sum
+    description: The number of VALU MFMA instructions on float16. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MFMA_F16,sum)
+  - name: SQ_INSTS_VALU_MFMA_BF16_sum
+    description: The number of VALU MFMA instructions on bfloat16. Sum over shader engines.
+    properties: []
+    definitions:
+    - architectures:
+      - gfx90a
+      - gfx940
+      - gfx941
+      - gfx942
+      - gfx950
+      expression: reduce(SQ_INSTS_VALU_MFMA_BF16,sum)
