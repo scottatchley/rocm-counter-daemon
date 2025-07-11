@@ -1,0 +1,150 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <errno.h>
+#include <cstring>
+
+// Global file stream for writing to the output file
+static std::ofstream output_file;
+
+// Signal handler
+void signal_handler(int signum) {
+	if (signum == SIGUSR1) {
+		output_file << "Hello World!" << std::endl;
+		output_file.flush();
+	}
+	output_file.close();
+	exit(0);
+}
+
+// Daemonize the process
+void daemonize() {
+	pid_t pid = fork();
+	if (pid < 0) {
+		std::cerr << "Fork failed: " << std::strerror(errno) << std::endl;
+		exit(1);
+	}
+	if (pid > 0) {
+		exit(0); // Parent exits
+	}
+
+#if 0
+	// Create new session
+	if (setsid() < 0) {
+		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
+		exit(1);
+	}
+
+	// Redirect standard files to /dev/null
+	int fd = open("/dev/null", O_RDWR);
+	if (fd != -1) {
+		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		dup2(fd, STDERR_FILENO);
+		if (fd > 2) close(fd);
+	} else {
+		std::cerr << "Failed to open /dev/null: " << std::strerror(errno) << std::endl;
+		exit(1);
+	}
+#endif
+
+	// Set umask
+	umask(0);
+
+	// Change working directory to root
+	if (chdir("/") < 0) {
+		std::cerr << "Failed to change directory to /: " << std::strerror(errno) << std::endl;
+		exit(1);
+	}
+}
+
+int main() {
+	// 1. Check for NO_OLCF_ROCPROF environment variable
+	if (std::getenv("NO_OLCF_ROCPROF") != nullptr) {
+		std::cerr << "NO_OLCF_ROCPROF set, exiting" << std::endl;
+		return 0;
+	}
+
+	// 2. Retrieve SLURM_JOBID environment variable
+	const char* slurm_jobid = std::getenv("SLURM_JOBID");
+	if (slurm_jobid == nullptr) {
+		std::cerr << "SLURM_JOBID not set, exiting" << std::endl;
+		return 1;
+	}
+
+	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
+	// mkdir(dirname);
+
+	// 3. Create string with SLURM_JOBID and hostname
+	char hostname[256];
+	if (gethostname(hostname, sizeof(hostname)) != 0) {
+		std::cerr << "Failed to get hostname: " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+	std::string filename = std::string(slurm_jobid) + "-" + std::string(hostname);
+
+	// 4. Create file with read-write permissions
+	output_file.open(dirname + filename, std::ios::out);
+	if (!output_file.is_open()) {
+		std::cerr << "Failed to open file " << dirname << "/" << filename << ": " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+#if 0
+	// Set read-write permissions for owner (rw-------)
+	if (chmod(("/var/log/" + filename).c_str(), S_IRUSR | S_IWUSR) != 0) {
+		std::cerr << "Failed to set permissions on /var/log/" << filename << ": " << std::strerror(errno) << std::endl;
+		output_file.close();
+		return 1;
+	}
+#endif
+
+	// 5. Set up signal handlers for SIGUSR1, SIGTERM, and SIGINT
+	struct sigaction sa;
+	sa.sa_handler = signal_handler;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	if (sigaction(SIGUSR1, &sa, nullptr) != 0) {
+		std::cerr << "Failed to set up SIGUSR1 handler: " << std::strerror(errno) << std::endl;
+		output_file.close();
+		return 1;
+	}
+	if (sigaction(SIGTERM, &sa, nullptr) != 0) {
+		std::cerr << "Failed to set up SIGTERM handler: " << std::strerror(errno) << std::endl;
+		output_file.close();
+		return 1;
+	}
+	if (sigaction(SIGINT, &sa, nullptr) != 0) {
+		std::cerr << "Failed to set up SIGINT handler: " << std::strerror(errno) << std::endl;
+		output_file.close();
+		return 1;
+	}
+
+	// Block waiting for SIGUSR1, SIGTERM, or SIGINT
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGUSR1);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGINT);
+	sigprocmask(SIG_BLOCK, &set, nullptr);
+
+	// Daemonize the process
+	daemonize();
+
+	// Wait for signal
+	int sig;
+	if (sigwait(&set, &sig) != 0) {
+		std::cerr << "Failed to wait for signal: " << std::strerror(errno) << std::endl;
+		output_file.close();
+		return 1;
+	}
+
+	// Signal handler will handle writing and exiting
+	return 0;
+}
