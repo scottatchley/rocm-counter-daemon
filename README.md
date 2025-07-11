@@ -18,3 +18,5 @@ SQ_INSTS_VALU_MFMA_F16_sum
 SQ_INSTS_VALU_MFMA_BF16_sum
 TCC_EA_RDREQ_sum
 TCC_EA_RDREQ_32B_sum
+
+which are defined in the olcf_derived_metrics.yaml file.
