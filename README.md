@@ -34,7 +34,7 @@ If the prologue script starts the daemon, the daemon will do the following:
 5. Set up a signal handler to catch SIGUSR1, SIGTERM, and SIGINT.
 6. Daemonize itself
    - Call fork()
-     - If the parent, exit
+     - If the parent, exit (the python script completes and the job starts)
    - Call setsid()
    - Redirect STDOUT and STDERR to /dev/null
    - Sets its umask to 0
