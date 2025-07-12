@@ -16,8 +16,10 @@ static std::ofstream output_file;
 // Signal handler
 void signal_handler(int signum) {
 	if (signum == SIGUSR1) {
+		// TODO
+		// Read counters and write to output_file
 		output_file << "Hello World!" << std::endl;
-		output_file.flush();
+		//output_file.flush();
 	}
 	output_file.close();
 	exit(0);
