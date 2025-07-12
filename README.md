@@ -19,7 +19,7 @@ SQ_INSTS_VALU_MFMA_BF16_sum\
 TCC_EA_RDREQ_sum\
 TCC_EA_RDREQ_32B_sum\
 
-which are defined in the olcf_derived_metrics.yaml file (the TCC_EA_RDREQ metrics are defined in the stock rocprof files).
+which are defined in the olcf_derived_metrics.yaml file (the TCC_EA_RDREQ\*\_sum metrics are defined in the stock rocprof files).
 
 This repo has two Python scripts, rocm-counter-prologue and rocm-counter-epilogue, and a binary, rocm-counter-daemon.
 
