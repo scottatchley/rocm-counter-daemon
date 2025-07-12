@@ -35,6 +35,7 @@ If the prologue script starts the daemon, the daemon will do the following:
 6. Daemonize itself
    - Call fork()
      - If the parent, exit (the python script completes and the job starts)
+   - (child process continues)
    - Call setsid()
    - Redirect STDOUT and STDERR to /dev/null
    - Sets its umask to 0
