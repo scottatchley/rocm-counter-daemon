@@ -43,7 +43,9 @@ def main():
 
     # Launch rocm-counter-daemon
     try:
-        process = subprocess.Popen(["rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # for debugging, do not redirect stdout/stderr to DEVNULL
+        #process = subprocess.Popen(["./rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen(["./rocm-counter-daemon", inputfile])
     except FileNotFoundError:
         print("rocm-counter-daemon binary not found", file=sys.stderr)
         sys.exit(5)
