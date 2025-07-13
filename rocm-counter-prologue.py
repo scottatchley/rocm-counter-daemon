@@ -34,6 +34,7 @@ def main():
 
     # The config files should be named "config-0", "config-1", or "config-3"
     #TODO use full Lustre path
+    #inputfile = f"/lustre/orion/stf008/world-shared/frontier-counters-script/config-{start_daemon}"
     inputfile = f"config-{start_daemon}"
 
     # Get SLURM_JOBID environment variable
