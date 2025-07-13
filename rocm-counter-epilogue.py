@@ -3,6 +3,7 @@
 import os
 import signal
 import sys
+import time
 
 def main():
     # Get SLURM_JOBID environment variable
@@ -53,6 +54,9 @@ def main():
     except Exception as e:
         print(f"Failed to delete PID file {pid_filename}: {e}", file=sys.stderr)
         sys.exit(8)
+
+    # give the daemon one second to collect the counters and write them out
+    time.sleep(1)
 
 if __name__ == "__main__":
     main()
