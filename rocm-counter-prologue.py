@@ -18,16 +18,18 @@ def main():
         sys.exit(1)
 
     # if not a leadership job, exit
-    if slurm_nnodes < 1882:
-        sys.exit(1)
+    if int(slurm_nnodes) < 1882:
+        print("SLURM_NNODES less than 1882, exiting", file=sys.stderr)
+        sys.exit(0) # not an error
 
     slurm_nodeid = os.getenv("SLURM_NODEID")
-    if slurm_jobid is None:
+    if slurm_nodeid is None:
         print("SLURM_NODEID not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    start_daemon = int(slurm_nodeid % ((slurm_nnodes / 16)))
+    start_daemon = int(int(slurm_nodeid) % ((int(slurm_nnodes) / 16)))
     if start_daemon > 2:
+        print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
         sys.exit(1)
 
     #TODO use full Lustre path
