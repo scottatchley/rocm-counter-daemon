@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 def main():
-    # 1. Check for NO_OLCF_HW_COUNTERS environment variable
+    # Check for NO_OLCF_HW_COUNTERS environment variable
     if os.getenv("NO_OLCF_HW_COUNTERS") is not None:
         print("NO_OLCF_HW_COUNTERS set, exiting", file=sys.stderr)
         sys.exit(0)
@@ -13,7 +13,7 @@ def main():
     # Should we start the daemon? Get the number of nodes from SLURM_NNODES and our node index from SLURM_NODEID.
 
     slurm_nnodes = os.getenv("SLURM_NNODES")
-    if slurm_jobid is None:
+    if slurm_nnodes is None:
         print("SLURM_NNODES not set, exiting", file=sys.stderr)
         sys.exit(1)
 
@@ -33,13 +33,13 @@ def main():
     #TODO use full Lustre path
     inputfile = f"config-{start_daemon}"
 
-    # 2. Get SLURM_JOBID environment variable
+    # Get SLURM_JOBID environment variable
     slurm_jobid = os.getenv("SLURM_JOBID")
     if slurm_jobid is None:
         print("SLURM_JOBID not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    # 3. Launch rocm-counter-daemon
+    # Launch rocm-counter-daemon
     try:
         process = subprocess.Popen(["rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except FileNotFoundError:
@@ -49,7 +49,7 @@ def main():
         print(f"Failed to launch rocm-counter-daemon: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # 4. Write PID to file in /tmp
+    # Write PID to file in /tmp
     pid_filename = f"/tmp/rocm-counter-daemon-pid-{slurm_jobid}"
     try:
         with open(pid_filename, "w") as pid_file:
