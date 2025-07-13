@@ -54,19 +54,5 @@ def main():
         print(f"Failed to launch rocm-counter-daemon: {e}", file=sys.stderr)
         sys.exit(6)
 
-    # Write PID to file in /tmp
-    pid_filename = f"/tmp/rocm-counter-daemon-pid-{slurm_jobid}"
-    try:
-        with open(pid_filename, "w") as pid_file:
-            pid_file.write(str(process.pid))
-        # Set file permissions to rw------- (600)
-        os.chmod(pid_filename, 0o600)
-    except Exception as e:
-        print(f"Failed to write PID to {pid_filename}: {e}", file=sys.stderr)
-        process.terminate()
-        sys.exit(7)
-
-    print(f"Launched rocm-counter-daemon with PID {process.pid}, written to {pid_filename}")
-
 if __name__ == "__main__":
     main()

@@ -80,7 +80,8 @@ int main() {
 		return 1;
 	}
 
-	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
+	//std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
+	std::string dirname = "./counters/" + std::string(slurm_jobid) + "/";
 	// mkdir(dirname);
 
 	// 3. Create string with SLURM_JOBID and hostname
@@ -138,6 +139,20 @@ int main() {
 
 	// Daemonize the process
 	daemonize();
+
+	// Get our PID and write to a file in tmp
+	pid_t pid = getpid();
+	std::string pid_filename = std::string("/tmp/rocm-counter-daemon-pid-") + std::string(slurm_jobid);
+
+	std::ofstream pid_file;
+	pid_file.open(pid_filename, std::ios::out);
+	if (!pid_file.is_open()) {
+		std::cerr << "Failed to open file " << pid_filename << ": " << std::strerror(errno) << std::endl;
+		return 1;
+	}
+
+	pid_file <<  std::to_string(pid)<< std::endl;
+	pid_file.close();
 
 	// Wait for signal
 	int sig;
