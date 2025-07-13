@@ -32,6 +32,7 @@ def main():
         print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
         sys.exit(3)
 
+    # The config files should be named "config-0", "config-1", or "config-3"
     #TODO use full Lustre path
     inputfile = f"config-{start_daemon}"
 
