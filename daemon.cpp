@@ -38,7 +38,7 @@ void daemonize() {
 
 	// TODO - set up ROCm context and start counters
 
-#ifndef NDEBUG
+#ifdef NDEBUG
 	// Create new session
 	if (setsid() < 0) {
 		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
