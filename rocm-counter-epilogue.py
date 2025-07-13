@@ -44,5 +44,15 @@ def main():
         print(f"Failed to send SIGUSR1 to PID {pid}: {e}", file=sys.stderr)
         sys.exit(1)
 
+    # Unlink the PID file
+    try:
+        os.unlink(pid_filename)
+        print(f"Deleted PID file {pid_filename}")
+    except FileNotFoundError:
+        print(f"PID file {pid_filename} already deleted", file=sys.stderr)
+    except Exception as e:
+        print(f"Failed to delete PID file {pid_filename}: {e}", file=sys.stderr)
+        sys.exit(1)
+
 if __name__ == "__main__":
     main()
