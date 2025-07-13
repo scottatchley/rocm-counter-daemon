@@ -13,18 +13,6 @@
 // Global file stream for writing to the output file
 static std::ofstream output_file;
 
-// Signal handler
-void signal_handler(int signum) {
-	if (signum == SIGUSR1) {
-		// TODO
-		// Read counters and write to output_file
-		output_file << "Hello World!" << std::endl;
-		output_file.flush();
-	}
-	output_file.close();
-	exit(0);
-}
-
 // Daemonize the process
 void daemonize() {
 	pid_t pid = fork();
@@ -38,7 +26,7 @@ void daemonize() {
 
 	// TODO - set up ROCm context and start counters
 
-#if 0
+#ifdef NDEBUG
 	// Create new session
 	if (setsid() < 0) {
 		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
@@ -110,27 +98,6 @@ int main() {
 	}
 #endif
 
-	// 5. Set up signal handlers for SIGUSR1, SIGTERM, and SIGINT
-	struct sigaction sa;
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	if (sigaction(SIGUSR1, &sa, nullptr) != 0) {
-		std::cerr << "Failed to set up SIGUSR1 handler: " << std::strerror(errno) << std::endl;
-		output_file.close();
-		return 1;
-	}
-	if (sigaction(SIGTERM, &sa, nullptr) != 0) {
-		std::cerr << "Failed to set up SIGTERM handler: " << std::strerror(errno) << std::endl;
-		output_file.close();
-		return 1;
-	}
-	if (sigaction(SIGINT, &sa, nullptr) != 0) {
-		std::cerr << "Failed to set up SIGINT handler: " << std::strerror(errno) << std::endl;
-		output_file.close();
-		return 1;
-	}
-
 	// Block waiting for SIGUSR1, SIGTERM, or SIGINT
 	sigset_t set;
 	sigemptyset(&set);
@@ -157,12 +124,20 @@ int main() {
 	pid_file.close();
 
 	// Wait for signal
-	int sig;
-	if (sigwait(&set, &sig) != 0) {
+	int signum;
+	if (sigwait(&set, &signum) != 0) {
 		std::cerr << "Failed to wait for signal: " << std::strerror(errno) << std::endl;
 		output_file.close();
 		return 1;
 	}
+
+	if (signum == SIGUSR1) {
+		// TODO
+		// Read counters and write to output_file
+		output_file << "Hello World!" << std::endl;
+		output_file.flush();
+	}
+	output_file.close();
 
 	// Signal handler will handle writing and exiting
 	return 0;
