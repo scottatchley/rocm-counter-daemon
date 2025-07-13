@@ -25,12 +25,12 @@ def main():
     slurm_nodeid = os.getenv("SLURM_NODEID")
     if slurm_nodeid is None:
         print("SLURM_NODEID not set, exiting", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(2)
 
     start_daemon = int(int(slurm_nodeid) % ((int(slurm_nnodes) / 16)))
     if start_daemon > 2:
         print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(3)
 
     #TODO use full Lustre path
     inputfile = f"config-{start_daemon}"
@@ -39,17 +39,17 @@ def main():
     slurm_jobid = os.getenv("SLURM_JOBID")
     if slurm_jobid is None:
         print("SLURM_JOBID not set, exiting", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(4)
 
     # Launch rocm-counter-daemon
     try:
         process = subprocess.Popen(["rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except FileNotFoundError:
         print("rocm-counter-daemon binary not found", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(5)
     except Exception as e:
         print(f"Failed to launch rocm-counter-daemon: {e}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(6)
 
     # Write PID to file in /tmp
     pid_filename = f"/tmp/rocm-counter-daemon-pid-{slurm_jobid}"
@@ -61,7 +61,7 @@ def main():
     except Exception as e:
         print(f"Failed to write PID to {pid_filename}: {e}", file=sys.stderr)
         process.terminate()
-        sys.exit(1)
+        sys.exit(7)
 
     print(f"Launched rocm-counter-daemon with PID {process.pid}, written to {pid_filename}")
 
