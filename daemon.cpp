@@ -19,7 +19,7 @@ void signal_handler(int signum) {
 		// TODO
 		// Read counters and write to output_file
 		output_file << "Hello World!" << std::endl;
-		//output_file.flush();
+		output_file.flush();
 	}
 	output_file.close();
 	exit(0);
@@ -38,7 +38,7 @@ void daemonize() {
 
 	// TODO - set up ROCm context and start counters
 
-#ifdef NDEBUG
+#if 0
 	// Create new session
 	if (setsid() < 0) {
 		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
@@ -56,7 +56,6 @@ void daemonize() {
 		std::cerr << "Failed to open /dev/null: " << std::strerror(errno) << std::endl;
 		exit(1);
 	}
-#endif
 
 	// Set umask
 	umask(0);
@@ -66,6 +65,7 @@ void daemonize() {
 		std::cerr << "Failed to change directory to /: " << std::strerror(errno) << std::endl;
 		exit(1);
 	}
+#endif
 }
 
 int main() {
@@ -83,7 +83,7 @@ int main() {
 	}
 
 	//std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
-	std::string dirname = "./counters/" + std::string(slurm_jobid) + "/";
+	std::string dirname = "counters/" + std::string(slurm_jobid);
 	// mkdir(dirname);
 
 	// 3. Create string with SLURM_JOBID and hostname
@@ -95,7 +95,7 @@ int main() {
 	std::string filename = std::string(slurm_jobid) + "-" + std::string(hostname);
 
 	// 4. Create file with read-write permissions
-	output_file.open(dirname + filename, std::ios::out);
+	output_file.open(dirname + "/" + filename, std::ios::out);
 	if (!output_file.is_open()) {
 		std::cerr << "Failed to open file " << dirname << "/" << filename << ": " << std::strerror(errno) << std::endl;
 		return 1;
@@ -153,7 +153,7 @@ int main() {
 		return 1;
 	}
 
-	pid_file <<  std::to_string(pid)<< std::endl;
+	pid_file << std::to_string(pid)<< std::endl;
 	pid_file.close();
 
 	// Wait for signal
