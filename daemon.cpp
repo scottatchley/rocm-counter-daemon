@@ -36,6 +36,8 @@ void daemonize() {
 		exit(0); // Parent exits
 	}
 
+	// TODO - set up ROCm context and start counters
+
 #ifndef NDEBUG
 	// Create new session
 	if (setsid() < 0) {
