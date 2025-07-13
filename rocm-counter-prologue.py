@@ -26,7 +26,7 @@ def main():
         print("SLURM_NODEID not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    int start_daemon = slurm_nodeid % ((slurm_nnodes / 16))
+    start_daemon = int(slurm_nodeid % ((slurm_nnodes / 16)))
     if start_daemon > 2:
         sys.exit(1)
 
