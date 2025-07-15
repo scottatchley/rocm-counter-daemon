@@ -63,6 +63,8 @@ int main() {
 		return 0;
 	}
 
+	std::cout << "Daemon starting" << std::endl;
+
 	// 2. Retrieve SLURM_JOBID environment variable
 	const char* slurm_jobid = std::getenv("SLURM_JOBID");
 	if (slurm_jobid == nullptr) {
@@ -72,7 +74,7 @@ int main() {
 
 	//std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
 	std::string dirname = "counters/" + std::string(slurm_jobid);
-	// mkdir(dirname);
+	mkdir(dirname.c_str(), 0755);
 
 	// 3. Create string with SLURM_JOBID and hostname
 	char hostname[256];

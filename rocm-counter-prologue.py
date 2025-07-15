@@ -46,7 +46,7 @@ def main():
         print("SLURM_JOB_NUM_NODES not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    # if not a leadership job, exit
+    #if not a leadership job, exit
     if int(slurm_nnodes) < 1882:
         print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
         sys.exit(0) # not an error
@@ -95,7 +95,7 @@ def main():
     try:
         # for debugging, do not redirect stdout/stderr to DEVNULL
         #process = subprocess.Popen(["./rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process = subprocess.Popen(["./rocm-counter-daemon", inputfile])
+        process = subprocess.Popen(["/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon", inputfile])
     except FileNotFoundError:
         print("rocm-counter-daemon binary not found", file=sys.stderr)
         sys.exit(5)
