@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <cstring>
 
+#define SLEEP_SECS	(1)
+
 // Global file stream for writing to the output file
 static std::ofstream output_file;
 
@@ -399,6 +401,13 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
+	int num_devices = 0;
+	auto status = hipGetDeviceCount(&num_devices);
+
+	bool valid = true;
+	// default sampling interval of 1 sec, can be overridden by command line arg
+	int interval_seconds = SLEEP_SECS;
+
 	std::cout << "Daemon starting" << std::endl;
 
 	if (argc != 2) {
@@ -421,7 +430,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Read counters into vector
-	std::vector<std::string> counter_names;
+	std::vector<std::string> counters;
 	std::string line;
 	while (std::getline(config_file, line)) {
 		// Trim whitespace
@@ -429,7 +438,7 @@ int main(int argc, char *argv[]) {
 		line.erase(std::find_if(line.rbegin(), line.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), line.end());
 		// Skip empty lines
 		if (!line.empty()) {
-			counter_names.push_back(line);
+			counters.push_back(line);
 		}
 	}
 
@@ -439,7 +448,7 @@ int main(int argc, char *argv[]) {
 #if 0
 	// Print counters for verification
 	std::cout << "Counters read from " << config_name << ":" << std::endl;
-	for (const auto& counter : counter_names) {
+	for (const auto& counter : counters) {
 		std::cout << counter << std::endl;
 	}
 #endif
@@ -504,6 +513,38 @@ int main(int argc, char *argv[]) {
 	pid_file << std::to_string(pid)<< std::endl;
 	pid_file.close();
 
+	std::vector<rocprofiler_record_counter_t> records;
+	std::vector<double> grbm_counts;
+
+	//std::cout << "start:\n";
+	for (auto collector : collectors) {
+		collector->sample_counters(counters, records);
+		auto values = process_records(records, collector);
+		//print_values(values);
+		grbm_counts.push_back(values["GRBM_COUNT"]);
+	}
+
+	while (!done) {
+		std::this_thread::sleep_for(std::chrono::seconds(interval_seconds));
+		for (int i = 0; i < grbm_counts.size(); i++) {
+			auto collector = collectors[i];
+			collector->sample_counters(counters, records);
+			auto values = process_records(records, collector);
+
+			// Make sure GRBM_COUNT is always increasing. If it's not,
+			// another profiling process (eg. rocprof) was likely invoked during the
+			// interval and the numbers are no longer reliable.
+			auto previous = grbm_counts[i];
+			grbm_counts[i] = values["GRBM_COUNT"];
+			if (grbm_counts[i] < previous) {
+				std::cerr << "Invalid session: " << previous << " " << grbm_counts[i] << "\n";
+				valid = false;
+			}
+			// print_values(values);
+		}
+	}
+
+#if 0
 	// Wait for signal
 	int signum;
 	if (sigwait(&set, &signum) != 0) {
@@ -519,7 +560,23 @@ int main(int argc, char *argv[]) {
 		output_file.flush();
 	}
 	output_file.close();
+#endif
 
-	// Signal handler will handle writing and exiting
-	return 0;
+	//std::cout << "end:\n";
+	for (auto collector : collectors) {
+		collector->sample_counters(counters, records);
+		auto values = process_records(records, collector);
+		//print_values(values);
+		for (const auto &pair : values) {
+			output_file << pair.first << ": " << pair.second << '\n';
+		}
+		output_file.flush();
+		output_file.close();
+	}
+	//std::cout << "valid: " << valid << "\n";
+
+	if(valid)
+		return 0;
+	else
+		return 1;
 }
