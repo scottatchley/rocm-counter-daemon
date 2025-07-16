@@ -1,3 +1,18 @@
+#include <rocprofiler-sdk/buffer.h>
+#include <rocprofiler-sdk/context.h>
+#include <rocprofiler-sdk/fwd.h>
+#include <rocprofiler-sdk/registration.h>
+#include <rocprofiler-sdk/rocprofiler.h>
+
+#include <atomic>
+#include <chrono>
+#include <csignal>
+#include <map>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -6,12 +21,25 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <errno.h>
 #include <cstring>
 
 // Global file stream for writing to the output file
 static std::ofstream output_file;
+
+#define ROCPROFILER_CALL(result, msg)                                                              \
+  {                                                                                                \
+    rocprofiler_status_t CHECKSTATUS = result;                                                     \
+    if (CHECKSTATUS != ROCPROFILER_STATUS_SUCCESS) {                                               \
+      std::string status_msg = rocprofiler_get_status_string(CHECKSTATUS);                         \
+      std::cerr << "[" #result "][" << __FILE__ << ":" << __LINE__ << "] " << msg                  \
+                << " failed with error code " << CHECKSTATUS << ": " << status_msg << std::endl;   \
+      std::stringstream errmsg{};                                                                  \
+      errmsg << "[" #result "][" << __FILE__ << ":" << __LINE__ << "] " << msg " failure ("        \
+             << status_msg << ")";                                                                 \
+      throw std::runtime_error(errmsg.str());                                                      \
+    }                                                                                              \
+  }
 
 // Daemonize the process
 void daemonize() {
