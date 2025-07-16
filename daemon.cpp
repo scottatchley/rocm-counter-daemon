@@ -402,14 +402,47 @@ int main(int argc, char *argv[]) {
 	std::cout << "Daemon starting" << std::endl;
 
 	if (argc != 2) {
-		if (argc == 1) {
-			std::cerr << "Missing config file" << std::endl;
-		} else { // argc > 2
-			std::cerr << "Too many arguments" << std::endl;
-		}
-		std::cerr << "usage: " << argv[0] << " config-[01], exiting" << std::endl;
-		return -1;
+		std::cerr << "Usage: " << argv[0] << " <config-0|config-1>" << std::endl;
+		return 1;
 	}
+
+	// Check if argument is "config-0" or "config-1"
+	std::string config_name = argv[1];
+	if (config_name != "config-0" && config_name != "config-1") {
+		std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
+		return 1;
+	}
+
+	// Open the config file
+	std::ifstream config_file(config_name);
+	if (!config_file.is_open()) {
+		std::cerr << "Failed to open file: " << config_name << std::endl;
+		return 1;
+	}
+
+	// Read counters into vector
+	std::vector<std::string> counter_names;
+	std::string line;
+	while (std::getline(config_file, line)) {
+		// Trim whitespace
+		line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
+		line.erase(std::find_if(line.rbegin(), line.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), line.end());
+		// Skip empty lines
+		if (!line.empty()) {
+			counter_names.push_back(line);
+		}
+	}
+
+	// Close the file
+	config_file.close();
+
+#if 0
+	// Print counters for verification
+	std::cout << "Counters read from " << config_name << ":" << std::endl;
+	for (const auto& counter : counter_names) {
+		std::cout << counter << std::endl;
+	}
+#endif
 
 	// 2. Retrieve SLURM_JOBID environment variable
 	const char* slurm_jobid = std::getenv("SLURM_JOBID");
