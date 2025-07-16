@@ -26,13 +26,15 @@ void daemonize() {
 
 	// TODO - set up ROCm context and start counters
 
-#ifdef NDEBUG
+	// The following is needed to prevent the Slurm prolog script from killing the daemon
+
 	// Create new session
 	if (setsid() < 0) {
 		std::cerr << "Failed to create new session: " << std::strerror(errno) << std::endl;
 		exit(1);
 	}
 
+#ifdef NDEBUG
 	// Redirect standard files to /dev/null
 	int fd = open("/dev/null", O_RDWR);
 	if (fd != -1) {
