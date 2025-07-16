@@ -391,7 +391,8 @@ void daemonize() {
 #endif
 }
 
-int main() {
+// Must be passed one argument, config-[01]
+int main(int argc, char *argv[]) {
 	// 1. Check for NO_OLCF_ROCPROF environment variable
 	if (std::getenv("NO_OLCF_ROCPROF") != nullptr) {
 		std::cerr << "NO_OLCF_ROCPROF set, exiting" << std::endl;
@@ -399,6 +400,16 @@ int main() {
 	}
 
 	std::cout << "Daemon starting" << std::endl;
+
+	if (argc != 2) {
+		if (argc == 1) {
+			std::cerr << "Missing config file" << std::endl;
+		} else { // argc > 2
+			std::cerr << "Too many arguments" << std::endl;
+		}
+		std::cerr << "usage: " << argv[0] << " config-[01], exiting" << std::endl;
+		return -1;
+	}
 
 	// 2. Retrieve SLURM_JOBID environment variable
 	const char* slurm_jobid = std::getenv("SLURM_JOBID");
