@@ -314,7 +314,7 @@ extern "C" rocprofiler_tool_configure_result_t *rocprofiler_configure(uint32_t v
 }
 
 void signal_handler(int signal) {
-	if (signal == SIGTERM || signal == SIGINT) {
+	if (signal == SIGTERM || signal == SIGINT || signal == SIGUSR1) {
 		std::cerr << "Terminating collector\n";
 		done.store(true);
 	}
@@ -460,9 +460,13 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	//std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
-	std::string dirname = "counters/" + std::string(slurm_jobid);
-	mkdir(dirname.c_str(), 0755);
+	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
+	//std::string dirname = "counters/" + std::string(slurm_jobid);
+	int ret = mkdir(dirname.c_str(), 0755);
+	if (ret != 0) {
+		std::cerr << "mkdir(${dirname}) failed " << strerror(errno) << ", exiting" << std::endl;
+		return 1;
+	}
 
 	// 3. Create string with SLURM_JOBID and hostname
 	char hostname[256];
@@ -479,6 +483,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	std::cerr << "Opened file " << dirname << "/" << filename  << std::endl;
+
 #if 0
 	// Set read-write permissions for owner (rw-------)
 	if (chmod(("/var/log/" + filename).c_str(), S_IRUSR | S_IWUSR) != 0) {
@@ -488,6 +494,7 @@ int main(int argc, char *argv[]) {
 	}
 #endif
 
+#if 0
 	// Block waiting for SIGUSR1, SIGTERM, or SIGINT
 	sigset_t set;
 	sigemptyset(&set);
@@ -495,6 +502,7 @@ int main(int argc, char *argv[]) {
 	sigaddset(&set, SIGTERM);
 	sigaddset(&set, SIGINT);
 	sigprocmask(SIG_BLOCK, &set, nullptr);
+#endif
 
 	// Daemonize the process
 	daemonize();
