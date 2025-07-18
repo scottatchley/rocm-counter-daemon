@@ -32,19 +32,8 @@ If the prologue script starts the daemon, the daemon will do the following:
 3. Create a string, filename, for the output file using both the job ID and hostname.
 4. Create the file using dirname + filename.
 5. Set up a signal handler to catch SIGUSR1, SIGTERM, and SIGINT.
-6. Daemonize itself
-   - Call fork()
-     - If the parent, exit (the python script completes and the job starts)
-   - (child process continues)
-   - Call setsid()
-   - Redirect STDOUT and STDERR to /dev/null
-   - Sets its umask to 0
-   - Changes its working directory to "/"
-7. Blocks on sigwait
-
-At this point, the counters should be started and the daemon is waiting on SIGUSR1 (as well as SIGTERM and SIGINT).
+7. Polls for new counters once per second in a loop waiting on "done" to be set to true
+8. Once the signal is caught, set "done" to true
+9. Exit the loop and write the counters to the pre-created file
 
 At the job end, the epilogue script will determine if there is a daemon running. If there is, it will send SIGUSR1.
-
-Upon receipt of SIGUSR1, the daemon will unblock, read the counters, write the counters to the output file, cleanup, and exit.
-
