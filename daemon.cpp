@@ -418,10 +418,10 @@ int main(int argc, char *argv[]) {
 
 	// Check if argument is "config-0" or "config-1"
 	std::string config_name = argv[1];
-	if (config_name != "config-0" && config_name != "config-1") {
-		std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
-		return 2;
-	}
+	//if (config_name != "config-0" && config_name != "config-1") {
+		//std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
+		//return 2;
+	//}
 
 	// Open the config file
 	std::ifstream config_file(config_name);
