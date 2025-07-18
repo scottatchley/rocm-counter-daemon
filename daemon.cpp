@@ -419,14 +419,14 @@ int main(int argc, char *argv[]) {
 	std::string config_name = argv[1];
 	if (config_name != "config-0" && config_name != "config-1") {
 		std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
-		return 1;
+		return 2;
 	}
 
 	// Open the config file
 	std::ifstream config_file(config_name);
 	if (!config_file.is_open()) {
 		std::cerr << "Failed to open file: " << config_name << std::endl;
-		return 1;
+		return 3;
 	}
 
 	// Read counters into vector
@@ -457,22 +457,22 @@ int main(int argc, char *argv[]) {
 	const char* slurm_jobid = std::getenv("SLURM_JOBID");
 	if (slurm_jobid == nullptr) {
 		std::cerr << "SLURM_JOBID not set, exiting" << std::endl;
-		return 1;
+		return 4;
 	}
 
 	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
 	//std::string dirname = "counters/" + std::string(slurm_jobid);
 	int ret = mkdir(dirname.c_str(), 0755);
-	if (ret != 0) {
+	if (ret != 0 && errno != EEXIST) {
 		std::cerr << "mkdir(${dirname}) failed " << strerror(errno) << ", exiting" << std::endl;
-		return 1;
+		return 5;
 	}
 
 	// 3. Create string with SLURM_JOBID and hostname
 	char hostname[256];
 	if (gethostname(hostname, sizeof(hostname)) != 0) {
 		std::cerr << "Failed to get hostname: " << std::strerror(errno) << std::endl;
-		return 1;
+		return 6;
 	}
 	std::string filename = std::string(slurm_jobid) + "-" + std::string(hostname);
 
@@ -480,7 +480,7 @@ int main(int argc, char *argv[]) {
 	output_file.open(dirname + "/" + filename, std::ios::out);
 	if (!output_file.is_open()) {
 		std::cerr << "Failed to open file " << dirname << "/" << filename << ": " << std::strerror(errno) << std::endl;
-		return 1;
+		return 7;
 	}
 
 	std::cerr << "Opened file " << dirname << "/" << filename  << std::endl;
@@ -515,7 +515,8 @@ int main(int argc, char *argv[]) {
 	pid_file.open(pid_filename, std::ios::out);
 	if (!pid_file.is_open()) {
 		std::cerr << "Failed to open file " << pid_filename << ": " << std::strerror(errno) << std::endl;
-		return 1;
+		//output_file << "Failed to open file " << pid_filename << ": " << std::strerror(errno) << std::endl;
+		return 8;
 	}
 
 	pid_file << std::to_string(pid)<< std::endl;
@@ -586,5 +587,5 @@ int main(int argc, char *argv[]) {
 	if(valid)
 		return 0;
 	else
-		return 1;
+		return -1;
 }
