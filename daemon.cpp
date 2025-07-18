@@ -507,7 +507,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	// Daemonize the process
-	daemonize();
+	//daemonize();
 
 	// Get our PID and write to a file in tmp
 	pid_t pid = getpid();
@@ -538,6 +538,14 @@ int main(int argc, char *argv[]) {
 		//print_values(values);
 		grbm_counts.push_back(values["GRBM_COUNT"]);
 	}
+
+	//output_file << "Entering loop " << std::endl;
+
+	int seconds = 0;
+
+	signal(SIGTERM, signal_handler);
+	signal(SIGINT, signal_handler);
+	signal(SIGUSR1, signal_handler);
 
 	while (!done) {
 		std::this_thread::sleep_for(std::chrono::seconds(interval_seconds));
@@ -586,14 +594,14 @@ int main(int argc, char *argv[]) {
 	for (auto collector : collectors) {
 		collector->sample_counters(counters, records);
 		auto values = process_records(records, collector);
-		//print_values(values);
+		print_values(values);
 		for (const auto &pair : values) {
-			output_file << pair.first << ": " << pair.second << '\n';
+			output_file << pair.first << ": " << pair.second << std::endl;
 		}
 		output_file.flush();
 		output_file.close();
 	}
-	//std::cout << "valid: " << valid << "\n";
+	std::cout << "valid: " << valid << std::endl;
 
 	if(valid)
 		return 0;
