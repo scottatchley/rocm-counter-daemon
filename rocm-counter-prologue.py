@@ -61,10 +61,10 @@ def main():
         print("SLURM_JOB_NUM_NODES not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    #if not a leadership job, exit
-    if int(slurm_nnodes) < 1882:
-        print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
-        sys.exit(0) # not an error
+    # if not a leadership job, exit
+    #if int(slurm_nnodes) < 1882:
+        #print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
+        #sys.exit(0) # not an error
 
     slurm_nodename = os.getenv("SLURMD_NODENAME")
     if slurm_nodename is None:
@@ -77,6 +77,7 @@ def main():
         sys.exit(2)
 
     nodes = expand_node_list(slurm_nodelist)
+    print("Node list vector:", nodes)
 
     try:
         index = nodes.index(slurm_nodename)
@@ -85,12 +86,12 @@ def main():
         print(f"{slurm_nodename} not found in the node list", file=sys.stderr)
         sys.exit(2)
 
-    #slurm_nodeid = os.getenv("SLURM_NODEID")
-    #if slurm_nodeid is None:
-        #print("SLURM_NODEID not set, exiting", file=sys.stderr)
-        #sys.exit(2)
+    if int(slurm_nnodes) < 16:
+        base = 1
+    else:
+        base = 16
 
-    start_daemon = int(int(index) % ((int(slurm_nnodes) / 16)))
+    start_daemon = int(int(index) % ((int(slurm_nnodes) / base)))
     if start_daemon > 2:
         print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
         sys.exit(3)
