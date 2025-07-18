@@ -314,6 +314,7 @@ extern "C" rocprofiler_tool_configure_result_t *rocprofiler_configure(uint32_t v
 }
 
 void signal_handler(int signal) {
+	//output_file << "Terminating collector - caught " << std::to_string(signal) << std::endl;
 	if (signal == SIGTERM || signal == SIGINT || signal == SIGUSR1) {
 		std::cerr << "Terminating collector\n";
 		done.store(true);
@@ -484,6 +485,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	std::cerr << "Opened file " << dirname << "/" << filename  << std::endl;
+	//output_file << "Opened file " << dirname << "/" << filename  << std::endl;
 
 #if 0
 	// Set read-write permissions for owner (rw-------)
@@ -522,8 +524,12 @@ int main(int argc, char *argv[]) {
 	pid_file << std::to_string(pid)<< std::endl;
 	pid_file.close();
 
+	//output_file << "Wrote pid file " << pid_filename << std::endl;
+
 	std::vector<rocprofiler_record_counter_t> records;
 	std::vector<double> grbm_counts;
+
+	//output_file << "Starting collector " << std::endl;
 
 	//std::cout << "start:\n";
 	for (auto collector : collectors) {
@@ -547,11 +553,16 @@ int main(int argc, char *argv[]) {
 			grbm_counts[i] = values["GRBM_COUNT"];
 			if (grbm_counts[i] < previous) {
 				std::cerr << "Invalid session: " << previous << " " << grbm_counts[i] << "\n";
+				//output_file << "Invalid session: " << previous << " " << grbm_counts[i] << "\n";
+
 				valid = false;
 			}
-			// print_values(values);
+			//print_values(values);
 		}
+		//output_file << "Seconds: " << std::to_string(seconds++) << std::endl;
 	}
+
+	//output_file << "Exiting loop" << std::endl;
 
 #if 0
 	// Wait for signal
