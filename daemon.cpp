@@ -13,6 +13,7 @@
 #include <vector>
 
 
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -23,6 +24,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <cstring>
+
+using namespace std;
 
 #define SLEEP_SECS	(1)
 
@@ -373,10 +376,12 @@ int main(int argc, char *argv[]) {
 
 	// Check if argument is "config-0" or "config-1"
 	std::string config_name = argv[1];
-	//if (config_name != "config-0" && config_name != "config-1") {
-		//std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
-		//return 2;
-	//}
+	// get filename less basename and check
+	filesystem::path p(config_name);
+	if (p.filename() != "config-0" && p.filename() != "config-1") {
+		std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
+		return 2;
+	}
 
 	// Open the config file
 	std::ifstream config_file(config_name);
