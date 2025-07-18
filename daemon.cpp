@@ -461,7 +461,7 @@ int main(int argc, char *argv[]) {
 		return 4;
 	}
 
-	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid) + "/";
+	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid);
 	//std::string dirname = "counters/" + std::string(slurm_jobid);
 	int ret = mkdir(dirname.c_str(), 0755);
 	if (ret != 0 && errno != EEXIST) {
