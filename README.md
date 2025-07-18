@@ -37,3 +37,5 @@ If the prologue script starts the daemon, the daemon will do the following:
 9. Exit the loop and write the counters to the pre-created file
 
 At the job end, the epilogue script will determine if there is a daemon running. If there is, it will send SIGUSR1.
+
+Currently, the daemon aggreagtes the counters into a single value and does not use the dreived counters in olcf\_derived\_metrics.yaml.
