@@ -49,10 +49,14 @@ def expand_node_list(node_list):
 
 
 def main():
-    # Check for NO_OLCF_HW_COUNTERS environment variable
-    if os.getenv("NO_OLCF_HW_COUNTERS") is not None:
-        print("NO_OLCF_HW_COUNTERS set, exiting", file=sys.stderr)
-        sys.exit(0)
+    # Check for SPANK_GPU_COUNTERS environment variable
+    counters_onoff = os.getenv("SPANK_GPU_COUNTERS")
+    if counters_onoff is None:
+            print("SPANK_GPU_COUNTERS is not set", file=sys.stderr)
+    else:
+        if int(counters_onoff) == 0:
+            print("SPANK_GPU_COUNTERS=0, exiting", file=sys.stderr)
+            sys.exit(0)
 
     # Should we start the daemon? Get the number of nodes and our node index.
 
