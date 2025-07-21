@@ -514,9 +514,13 @@ int main(int argc, char *argv[]) {
 	for (auto collector : collectors) {
 		collector->sample_counters(counters, records);
 		auto values = process_records(records, collector);
-		print_values(values);
-		for (const auto &pair : values) {
-			output_file << pair.first << ": " << pair.second << std::endl;
+		if (valid) {
+			print_values(values);
+			for (const auto &pair : values) {
+				output_file << pair.first << ": " << pair.second << std::endl;
+			}
+		} else {
+			output_file << "Invalid session - ignoring counters" << std::endl;
 		}
 		output_file.flush();
 		output_file.close();
