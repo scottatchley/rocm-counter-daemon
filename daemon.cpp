@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
 	std::cout << "Daemon starting" << std::endl;
 
 	if (argc != 2) {
-		std::cerr << "Usage: " << argv[0] << " <config-0|config-1>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <config-0|config-1|config-2>" << std::endl;
 		return 1;
 	}
 
@@ -378,8 +378,8 @@ int main(int argc, char *argv[]) {
 	std::string config_name = argv[1];
 	// get filename less basename and check
 	filesystem::path p(config_name);
-	if (p.filename() != "config-0" && p.filename() != "config-1") {
-		std::cerr << "Invalid argument: must be 'config-0' or 'config-1'" << std::endl;
+	if (p.filename() != "config-0" && p.filename() != "config-1" && p.filename() != "config-2") {
+		std::cerr << "Invalid argument: must be 'config-0' or 'config-1' or 'config-2'" << std::endl;
 		return 2;
 	}
 
