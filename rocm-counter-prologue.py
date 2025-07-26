@@ -7,6 +7,8 @@ import sys
 import re
 import time
 
+prefix = "";
+
 def expand_node_list(node_list):
     # Match either prefix[digits,digits] or prefixdigits
     # - Group 1: prefix (e.g., "borg")
@@ -49,6 +51,9 @@ def expand_node_list(node_list):
 
 
 def main():
+
+    #sys.exit(0)
+
     # Check for SPANK_GPU_COUNTERS environment variable
     counters_onoff = os.getenv("SPANK_GPU_COUNTERS")
     if counters_onoff is None:
@@ -65,10 +70,10 @@ def main():
         print("SLURM_JOB_NUM_NODES not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    # if not a leadership job, exit
-    #if int(slurm_nnodes) < 1882:
-        #print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
-        #sys.exit(0) # not an error
+    if prefix == "frontier":
+        if int(slurm_nnodes) < 1882:
+            print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
+            sys.exit(0) # not an error
 
     slurm_nodename = os.getenv("SLURMD_NODENAME")
     if slurm_nodename is None:
@@ -90,7 +95,7 @@ def main():
         print(f"{slurm_nodename} not found in the node list", file=sys.stderr)
         sys.exit(2)
 
-    if int(slurm_nnodes) < 16:
+    if int(slurm_nnodes) < 48:
         base = 1
     else:
         base = 16
@@ -100,7 +105,7 @@ def main():
         print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
         sys.exit(3)
 
-    # The config files should be named "config-0", "config-1", or "config-3"
+    # The config files should be named "config-0", "config-1", or "config-2"
     inputfile = f"/lustre/orion/stf008/world-shared/frontier-counters-script/config-{start_daemon}"
 
     # Get SLURM_JOBID environment variable
@@ -113,7 +118,7 @@ def main():
     try:
         # for debugging, do not redirect stdout/stderr to DEVNULL
         #process = subprocess.Popen(["./rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process = subprocess.Popen(["/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon", inputfile], start_new_session=True)
+        process = subprocess.Popen(["/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     except FileNotFoundError:
         print("rocm-counter-daemon binary not found", file=sys.stderr)
         sys.exit(5)
