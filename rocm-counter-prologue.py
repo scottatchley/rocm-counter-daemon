@@ -27,6 +27,8 @@ def expand_node_list(node_list):
         padding = 3
     elif prefix == "frontier":
         padding = 5
+    elif prefix == "lux":
+        padding = 3
     else:
         padding = 4
 
