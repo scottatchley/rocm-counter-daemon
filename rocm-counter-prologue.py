@@ -10,7 +10,7 @@ import time
 
 prefix = "";
 
-def expand_node_list(node_list):
+def expand_node_list(node_list, padding=None):
     # Match either prefix[digits,digits] or prefixdigits
     # - Group 1: prefix (e.g., "borg")
     # - Group 2: bracketed numbers (e.g., "0008,0029" or "0008-0010,0029") or None
@@ -23,14 +23,18 @@ def expand_node_list(node_list):
     number_ranges = match.group(2)  # Bracketed numbers or None
     single_number = match.group(3)  # Single number or None
 
-    if prefix == "borg":
-        padding = 3
-    elif prefix == "frontier":
-        padding = 5
-    elif prefix == "lux":
-        padding = 3
-    else:
-        padding = 4
+    if padding is None:
+        # No explicit --padding given on the command line; fall back to the
+        # per-system defaults below. New systems can just pass --padding
+        # instead of adding another case here.
+        if prefix == "borg":
+            padding = 3
+        elif prefix == "frontier":
+            padding = 5
+        elif prefix == "lux":
+            padding = 3
+        else:
+            padding = 4
 
     nodes = []
 
@@ -61,10 +65,18 @@ def main():
 
     parser = argparse.ArgumentParser(description="ROCm counter daemon prologue script")
     parser.add_argument(
-        "config_dir",
-        nargs="?",
+        "--config-dir",
+        dest="config_dir",
         default=default_config_dir,
         help=f"Directory containing the config-0/config-1/config-2 counter files (default: {default_config_dir})",
+    )
+    parser.add_argument(
+        "--padding",
+        type=int,
+        default=None,
+        help="Zero-padding width for node numbers (e.g., 3 for node007). "
+             "Overrides the built-in per-system defaults, so new systems "
+             "don't require a code change.",
     )
     args = parser.parse_args()
 
@@ -103,7 +115,7 @@ def main():
         print("SLURMD_NODELIST not set, exiting", file=sys.stderr)
         sys.exit(2)
 
-    nodes = expand_node_list(slurm_nodelist)
+    nodes = expand_node_list(slurm_nodelist, args.padding)
     print("Node list vector:", nodes)
 
     try:
