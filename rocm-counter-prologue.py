@@ -68,7 +68,7 @@ def main():
         "--config-dir",
         dest="config_dir",
         default=default_config_dir,
-        help=f"Directory containing the config-0/config-1/config-2 counter files (default: {default_config_dir})",
+        help=f"Directory containing the config-0/config-1/config-2/config-3 counter files (default: {default_config_dir})",
     )
     parser.add_argument(
         "--padding",
@@ -131,11 +131,11 @@ def main():
         base = 16
 
     start_daemon = int(int(index) % ((int(slurm_nnodes) / base)))
-    if start_daemon > 2:
-        print(f"start_daemon ({start_daemon}) > 2, exiting", file=sys.stderr)
+    if start_daemon > 3:
+        print(f"start_daemon ({start_daemon}) > 3, exiting", file=sys.stderr)
         sys.exit(3)
 
-    # The config files should be named "config-0", "config-1", or "config-2"
+    # The config files should be named "config-0", "config-1", "config-2", or "config-3"
     inputfile = os.path.join(args.config_dir, f"config-{start_daemon}")
 
     # Get SLURM_JOBID environment variable
