@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 import subprocess
 import sys
@@ -54,6 +55,21 @@ def main():
 
     #sys.exit(0)
 
+    default_config_dir = "/lustre/orion/stf008/world-shared/frontier-counters-script"
+
+    parser = argparse.ArgumentParser(description="ROCm counter daemon prologue script")
+    parser.add_argument(
+        "config_dir",
+        nargs="?",
+        default=default_config_dir,
+        help=f"Directory containing the config-0/config-1/config-2 counter files (default: {default_config_dir})",
+    )
+    args = parser.parse_args()
+
+    if not os.path.isdir(args.config_dir):
+        print(f"config_dir '{args.config_dir}' is not a directory", file=sys.stderr)
+        sys.exit(7)
+
     # Check for SPANK_GPU_COUNTERS environment variable
     counters_onoff = os.getenv("SPANK_GPU_COUNTERS")
     if counters_onoff is None:
@@ -106,7 +122,7 @@ def main():
         sys.exit(3)
 
     # The config files should be named "config-0", "config-1", or "config-2"
-    inputfile = f"/lustre/orion/stf008/world-shared/frontier-counters-script/config-{start_daemon}"
+    inputfile = os.path.join(args.config_dir, f"config-{start_daemon}")
 
     # Get SLURM_JOBID environment variable
     slurm_jobid = os.getenv("SLURM_JOBID")
