@@ -4,8 +4,8 @@ if(NOT CMAKE_HIP_COMPILER)
     find_program(
         amdclangpp_EXECUTABLE
         NAMES amdclang++
-        HINTS ${ROCM_PATH} ENV ROCM_PATH /opt/rocm-6.4.1/
-        PATHS ${ROCM_PATH} ENV ROCM_PATH /opt/rocm-6.4.1/
+        HINTS ${ROCM_PATH} ENV ROCM_PATH /opt/rocm-7.2.0/
+        PATHS ${ROCM_PATH} ENV ROCM_PATH /opt/rocm-7.2.0/
         PATH_SUFFIXES bin llvm/bin NO_CACHE)
     mark_as_advanced(amdclangpp_EXECUTABLE)
 
