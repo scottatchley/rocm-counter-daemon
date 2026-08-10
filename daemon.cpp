@@ -353,7 +353,10 @@ void print_values(const std::unordered_map<std::string, double> &values) {
 	}
 }
 
-// Must be passed one argument, config-[01]
+// Default base directory for the output files; overridable with --dirname
+#define DEFAULT_DIRNAME	"/tmp"
+
+// Must be passed one argument, config-[012], and optionally --dirname <dir>
 int main(int argc, char *argv[]) {
 	// 1. Check for NO_OLCF_ROCPROF environment variable
 	if (std::getenv("NO_OLCF_ROCPROF") != nullptr) {
@@ -370,13 +373,53 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "Daemon starting" << std::endl;
 
-	if (argc != 2) {
-		std::cerr << "Usage: " << argv[0] << " <config-0|config-1|config-2>" << std::endl;
+	std::string usage = std::string("Usage: ") + argv[0] +
+		" [--dirname <dir>] <config-0|config-1|config-2>";
+
+	// Parse command line arguments: an optional --dirname <dir> (or
+	// --dirname=<dir>) option and one required positional config file argument.
+	std::string config_name;
+	std::string dirname_base = DEFAULT_DIRNAME;
+
+	for (int i = 1; i < argc; i++) {
+		std::string arg = argv[i];
+		if (arg == "--dirname") {
+			if (i + 1 >= argc) {
+				std::cerr << "--dirname requires an argument\n" << usage << std::endl;
+				return 1;
+			}
+			dirname_base = argv[++i];
+		} else if (arg.rfind("--dirname=", 0) == 0) {
+			dirname_base = arg.substr(std::string("--dirname=").size());
+		} else if (config_name.empty()) {
+			config_name = arg;
+		} else {
+			std::cerr << usage << std::endl;
+			return 1;
+		}
+	}
+
+	if (config_name.empty()) {
+		std::cerr << usage << std::endl;
 		return 1;
 	}
 
+	using namespace std::chrono;
+	auto now = system_clock::now();
+	std::time_t t = system_clock::to_time_t(now);
+	std::tm tm;
+
+	localtime_r(&t, &tm);
+
+	std::string y = std::to_string(1900 + tm.tm_year) + "/";
+	std::string m = std::to_string(1 + tm.tm_mon) + "/";
+	std::string d = std::to_string(tm.tm_mday) + "/";
+
+	std::string dirname_base_date = dirname_base + "/" + y + m + d;
+	std::cout << dirname_base_date;
+
+
 	// Check if argument is "config-0" or "config-1"
-	std::string config_name = argv[1];
 	// get filename less basename and check
 	filesystem::path p(config_name);
 	if (p.filename() != "config-0" && p.filename() != "config-1" && p.filename() != "config-2") {
@@ -422,11 +465,11 @@ int main(int argc, char *argv[]) {
 		return 4;
 	}
 
-	std::string dirname = "/lustre/orion/stf008/world-shared/frontier-counters/" + std::string(slurm_jobid);
-	//std::string dirname = "counters/" + std::string(slurm_jobid);
-	int ret = mkdir(dirname.c_str(), 0755);
-	if (ret != 0 && errno != EEXIST) {
-		std::cerr << "mkdir(${dirname}) failed " << strerror(errno) << ", exiting" << std::endl;
+	std::string dirname = (std::filesystem::path(dirname_base_date) / std::string(slurm_jobid)).string();
+	std::error_code ec;
+	std::filesystem::create_directories(dirname, ec);
+	if (ec) {
+		std::cerr << "mkdir(" << dirname << ") failed " << ec.message() << ", exiting" << std::endl;
 		return 5;
 	}
 
