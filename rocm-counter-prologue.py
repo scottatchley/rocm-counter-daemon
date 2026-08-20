@@ -101,8 +101,8 @@ def main():
         sys.exit(1)
 
     if prefix == "frontier":
-        if int(slurm_nnodes) < 1882:
-            print("SLURM_JOB_NUM_NODES less than 1882, exiting", file=sys.stderr)
+        if int(slurm_nnodes) < 500:
+            print("SLURM_JOB_NUM_NODES less than 500, exiting", file=sys.stderr)
             sys.exit(0) # not an error
 
     slurm_nodename = os.getenv("SLURMD_NODENAME")
@@ -151,7 +151,7 @@ def main():
         process = subprocess.Popen(
                 [
                     "/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon",
-                    "--dirname=/lustre/orion/sysinfo",
+                    "--dirname=/lustre/orion/sysinfo/" + prefix,
                     inputfile
                 ],
                 stdin=subprocess.DEVNULL,
