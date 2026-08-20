@@ -6,7 +6,12 @@ import subprocess
 import sys
 
 import re
+import datetime
 import time
+
+from pathlib import Path
+
+output_base = Path('/lustre/orion/sysinfo')
 
 cluster = os.getenv("SLURM_CLUSTER_NAME", default=None)
 if cluster is None:
@@ -96,6 +101,8 @@ def main():
         print("SLURM_JOBID not set, exiting", file=sys.stderr)
         sys.exit(4)
 
+    output_dir = output_base / cluster / datetime.date.today().strftime('%Y/%m/%d') / slurm_jobid
+
     # Launch rocm-counter-daemon
     try:
         # for debugging, do not redirect stdout/stderr to DEVNULL
@@ -103,7 +110,8 @@ def main():
         process = subprocess.Popen(
                 [
                     "/usr/bin/rocm-counter-daemon",
-                    "--dirname=/lustre/orion/sysinfo/" + cluster,
+                    "--output",
+                    output_dir,
                     inputfile
                 ],
                 stdin=subprocess.DEVNULL,

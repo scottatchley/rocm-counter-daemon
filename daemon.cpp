@@ -353,10 +353,10 @@ void print_values(const std::unordered_map<std::string, double> &values) {
 	}
 }
 
-// Default base directory for the output files; overridable with --dirname
-#define DEFAULT_DIRNAME	"/tmp"
+// Default base directory for the output files; overridable with --output
+#define DEFAULT_OUTPUT	"/tmp"
 
-// Must be passed one argument, config-[012], and optionally --dirname <dir>
+// Must be passed one argument, config-[012], and optionally --output <dir>
 int main(int argc, char *argv[]) {
 	// 1. Check for NO_OLCF_ROCPROF environment variable
 	if (std::getenv("NO_OLCF_ROCPROF") != nullptr) {
@@ -374,23 +374,30 @@ int main(int argc, char *argv[]) {
 	std::cout << "Daemon starting" << std::endl;
 
 	std::string usage = std::string("Usage: ") + argv[0] +
-		" [--dirname <dir>] <config-0|config-1|config-2>";
+		" [--output <dir>] <config-0|config-1|config-2>";
 
-	// Parse command line arguments: an optional --dirname <dir> (or
-	// --dirname=<dir>) option and one required positional config file argument.
+	// Retrieve SLURM_JOBID environment variable
+	const char* slurm_jobid = std::getenv("SLURM_JOBID");
+	if (slurm_jobid == nullptr) {
+		std::cerr << "SLURM_JOBID not set, exiting" << std::endl;
+		return 4;
+	}
+
+	// Parse command line arguments: an optional --output <dir> (or
+	// --output=<dir>) option and one required positional config file argument.
 	std::string config_name;
-	std::string dirname_base = DEFAULT_DIRNAME;
+	std::string output = (std::filesystem::path(DEFAULT_OUTPUT) / std::string(slurm_jobid)).string();
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg = argv[i];
-		if (arg == "--dirname") {
+		if (arg == "--output") {
 			if (i + 1 >= argc) {
-				std::cerr << "--dirname requires an argument\n" << usage << std::endl;
+				std::cerr << "--output requires an argument\n" << usage << std::endl;
 				return 1;
 			}
-			dirname_base = argv[++i];
-		} else if (arg.rfind("--dirname=", 0) == 0) {
-			dirname_base = arg.substr(std::string("--dirname=").size());
+			output = argv[++i];
+		} else if (arg.rfind("--output=", 0) == 0) {
+			output = arg.substr(std::string("--output=").size());
 		} else if (config_name.empty()) {
 			config_name = arg;
 		} else {
@@ -403,21 +410,6 @@ int main(int argc, char *argv[]) {
 		std::cerr << usage << std::endl;
 		return 1;
 	}
-
-	using namespace std::chrono;
-	auto now = system_clock::now();
-	std::time_t t = system_clock::to_time_t(now);
-	std::tm tm;
-
-	localtime_r(&t, &tm);
-
-	std::string y = std::to_string(1900 + tm.tm_year) + "/";
-	std::string m = std::to_string(1 + tm.tm_mon) + "/";
-	std::string d = std::to_string(tm.tm_mday) + "/";
-
-	std::string dirname_base_date = dirname_base + "/" + y + m + d;
-	std::cout << dirname_base_date;
-
 
 	// Check if argument is "config-0" or "config-1"
 	// get filename less basename and check
@@ -458,18 +450,10 @@ int main(int argc, char *argv[]) {
 	}
 #endif
 
-	// 2. Retrieve SLURM_JOBID environment variable
-	const char* slurm_jobid = std::getenv("SLURM_JOBID");
-	if (slurm_jobid == nullptr) {
-		std::cerr << "SLURM_JOBID not set, exiting" << std::endl;
-		return 4;
-	}
-
-	std::string dirname = (std::filesystem::path(dirname_base_date) / std::string(slurm_jobid)).string();
 	std::error_code ec;
-	std::filesystem::create_directories(dirname, ec);
+	std::filesystem::create_directories(output, ec);
 	if (ec) {
-		std::cerr << "mkdir(" << dirname << ") failed " << ec.message() << ", exiting" << std::endl;
+		std::cerr << "mkdir(" << output << ") failed " << ec.message() << ", exiting" << std::endl;
 		return 5;
 	}
 
@@ -482,14 +466,14 @@ int main(int argc, char *argv[]) {
 	std::string filename = std::string(slurm_jobid) + "-" + std::string(hostname);
 
 	// 4. Create file with read-write permissions
-	output_file.open(dirname + "/" + filename, std::ios::out);
+	output_file.open(output + "/" + filename, std::ios::out);
 	if (!output_file.is_open()) {
-		std::cerr << "Failed to open file " << dirname << "/" << filename << ": " << std::strerror(errno) << std::endl;
+		std::cerr << "Failed to open file " << output << "/" << filename << ": " << std::strerror(errno) << std::endl;
 		return 7;
 	}
 
-	std::cerr << "Opened file " << dirname << "/" << filename  << std::endl;
-	//output_file << "Opened file " << dirname << "/" << filename  << std::endl;
+	std::cerr << "Opened file " << output << "/" << filename  << std::endl;
+	//output_file << "Opened file " << output << "/" << filename  << std::endl;
 
 	// Get our PID and write to a file in tmp
 	pid_t pid = getpid();
