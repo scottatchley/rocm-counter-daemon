@@ -30,3 +30,4 @@ target_link_libraries(
     PRIVATE rocprofiler-sdk::rocprofiler-sdk Threads::Threads)
 
 set_property(TARGET rocm-counter-daemon PROPERTY CXX_STANDARD 17)
+install(TARGETS rocm-counter-daemon DESTINATION bin)
