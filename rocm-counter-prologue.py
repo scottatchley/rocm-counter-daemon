@@ -148,7 +148,17 @@ def main():
     try:
         # for debugging, do not redirect stdout/stderr to DEVNULL
         #process = subprocess.Popen(["./rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process = subprocess.Popen(["/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        process = subprocess.Popen(
+                [
+                    "/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon",
+                    "--dirname=/lustre/orion/sysinfo",
+                    inputfile
+                ],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+        )
     except FileNotFoundError:
         print("rocm-counter-daemon binary not found", file=sys.stderr)
         sys.exit(5)
