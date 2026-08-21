@@ -358,6 +358,9 @@ void print_values(const std::unordered_map<std::string, double> &values) {
 
 // Must be passed one argument, config-[012], and optionally --output <dir>
 int main(int argc, char *argv[]) {
+	// Immediately change umask
+	umask(0027);
+
 	// 1. Check for NO_OLCF_ROCPROF environment variable
 	if (std::getenv("NO_OLCF_ROCPROF") != nullptr) {
 		std::cerr << "NO_OLCF_ROCPROF set, exiting" << std::endl;
