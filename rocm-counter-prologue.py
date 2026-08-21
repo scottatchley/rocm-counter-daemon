@@ -6,62 +6,27 @@ import subprocess
 import sys
 
 import re
+import datetime
 import time
 
-prefix = "";
+from pathlib import Path
 
-def expand_node_list(node_list, padding=None):
-    # Match either prefix[digits,digits] or prefixdigits
-    # - Group 1: prefix (e.g., "borg")
-    # - Group 2: bracketed numbers (e.g., "0008,0029" or "0008-0010,0029") or None
-    # - Group 3: single number (e.g., "0009") or None
-    match = re.match(r'^([a-zA-Z]+)(?:\[([\d,-]+)\]|(\d+))?$', node_list)
-    if not match:
-        raise ValueError(f"Invalid node list format: {node_list}")
+output_base = Path('/lustre/orion/sysinfo')
 
-    prefix = match.group(1)  # e.g., "borg"
-    number_ranges = match.group(2)  # Bracketed numbers or None
-    single_number = match.group(3)  # Single number or None
+cluster = os.getenv("SLURM_CLUSTER_NAME", default=None)
+if cluster is None:
+    print("$SLURM_CLUSTER_NAME is unset", file=sys.stderr)
+    sys.exit(1)
 
-    if padding is None:
-        # No explicit --padding given on the command line; fall back to the
-        # per-system defaults below. New systems can just pass --padding
-        # instead of adding another case here.
-        if prefix == "borg":
-            padding = 3
-        elif prefix == "frontier":
-            padding = 5
-        elif prefix == "lux":
-            padding = 3
-        else:
-            padding = 4
-
-    nodes = []
-
-    if number_ranges:
-        # Handle bracketed format (e.g., "borg[0008,0029]" or "borg[0008-0010,0029]")
-        for part in number_ranges.split(','):
-            if '-' in part:
-                # Handle range (e.g., "0008-0010")
-                start, end = part.split('-')
-                start_num, end_num = int(start), int(end)
-                for i in range(start_num, end_num + 1):
-                    nodes.append(f"{prefix}{i:0{padding}d}")
-            else:
-                # Enforce padding for single numbers in brackets
-                nodes.append(f"{prefix}{int(part):0{padding}d}")
-    elif single_number:
-        # Handle single node (e.g., "borg0009")
-        nodes.append(f"{prefix}{int(single_number):0{padding}}")
-
-    return nodes
-
+def expand_node_list(node_list):
+    if not re.match(r"^[a-zA-Z0-9\[\-,\]]+$", node_list):
+        print("Nodelist had suspicious characters, exiting", file=sys.stderr)
+        sys.exit(1)
+    result = subprocess.run(["/usr/bin/scontrol", "show", "hostnames", node_list], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, check=True)
+    return result.stdout.splitlines()
 
 def main():
-
-    #sys.exit(0)
-
-    default_config_dir = "/lustre/orion/stf008/world-shared/frontier-counters-script"
+    default_config_dir = "/etc/rocm-counter-daemon"
 
     parser = argparse.ArgumentParser(description="ROCm counter daemon prologue script")
     parser.add_argument(
@@ -69,14 +34,6 @@ def main():
         dest="config_dir",
         default=default_config_dir,
         help=f"Directory containing the config-0/config-1/config-2/config-3 counter files (default: {default_config_dir})",
-    )
-    parser.add_argument(
-        "--padding",
-        type=int,
-        default=None,
-        help="Zero-padding width for node numbers (e.g., 3 for node007). "
-             "Overrides the built-in per-system defaults, so new systems "
-             "don't require a code change.",
     )
     args = parser.parse_args()
 
@@ -100,7 +57,7 @@ def main():
         print("SLURM_JOB_NUM_NODES not set, exiting", file=sys.stderr)
         sys.exit(1)
 
-    if prefix == "frontier":
+    if cluster == "frontier":
         if int(slurm_nnodes) < 500:
             print("SLURM_JOB_NUM_NODES less than 500, exiting", file=sys.stderr)
             sys.exit(0) # not an error
@@ -112,10 +69,10 @@ def main():
 
     slurm_nodelist = os.getenv("SLURM_NODELIST")
     if slurm_nodelist is None:
-        print("SLURMD_NODELIST not set, exiting", file=sys.stderr)
+        print("SLURM_NODELIST not set, exiting", file=sys.stderr)
         sys.exit(2)
 
-    nodes = expand_node_list(slurm_nodelist, args.padding)
+    nodes = expand_node_list(slurm_nodelist)
     print("Node list vector:", nodes)
 
     try:
@@ -144,14 +101,17 @@ def main():
         print("SLURM_JOBID not set, exiting", file=sys.stderr)
         sys.exit(4)
 
+    output_dir = output_base / cluster / datetime.date.today().strftime('%Y/%m/%d') / slurm_jobid
+
     # Launch rocm-counter-daemon
     try:
         # for debugging, do not redirect stdout/stderr to DEVNULL
         #process = subprocess.Popen(["./rocm-counter-daemon", inputfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         process = subprocess.Popen(
                 [
-                    "/lustre/orion/proj-shared/stf008/rocm-counter-daemon/rocm-counter-daemon",
-                    "--dirname=/lustre/orion/sysinfo/" + prefix,
+                    "/usr/bin/rocm-counter-daemon",
+                    "--output",
+                    output_dir,
                     inputfile
                 ],
                 stdin=subprocess.DEVNULL,
