@@ -46,9 +46,8 @@ function validate_counters_value(on_off)
 end
 
 -- This is called as slurm parses the --gpu-counters option
-function gpu_couners_opt_handler(val, optarg, isremote)
-    -- Always succeed
-    -- Delete this function if it is not required
+function gpu_counters_opt_handler(val, optarg, isremote)
+    requested_onoff = validate_counters_value(optarg)
     return 0
 end
 
